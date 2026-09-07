@@ -1,0 +1,256 @@
+import { useState } from 'react'
+import { Camera, Clock, Pencil, Pill, Plus, Trash2 } from 'lucide-react'
+
+import { PageHeader } from '@/components/layout/PageHeader.tsx'
+import { Badge } from '@/components/ui/badge.tsx'
+import { Button } from '@/components/ui/button.tsx'
+import { Card } from '@/components/ui/card.tsx'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog.tsx'
+import { EmptyState, ErrorState, Notice } from '@/components/ui/feedback.tsx'
+import { SkeletonRow } from '@/components/ui/skeleton.tsx'
+import {
+  MedicineForm,
+  emptyMedicine,
+  toDraft,
+  type MedicineDraft,
+} from '@/features/medicines/MedicineForm.tsx'
+import { OcrReview } from '@/features/medicines/OcrReview.tsx'
+import { useMedicines, useMedicineMutation } from '@/features/medicines/useMedicines.ts'
+import { describeDays, formatMinutes, partOfDay } from '@/lib/utils.ts'
+import { usePatientAccess } from '@/patients/usePatientAccess.ts'
+import type { Medication } from '@smriti/shared'
+
+/**
+ * Manage → Medicines (frontend.md §8).
+ *
+ * Two entry points, one destination: type a medicine in by hand, or photograph
+ * the prescription and check every extracted line (§9). Both end in the same
+ * `medications` row through the same content-write choke point.
+ *
+ * Removing a medicine sets `active: false` rather than deleting the row. The
+ * adherence history in `daily_adherence` is built from `reminder_events` that
+ * reference it, and a caregiver tidying up an old prescription should not
+ * silently rewrite three months of the record they are about to show a doctor.
+ */
+export default function Medicines() {
+  const { patientId, canEdit } = usePatientAccess()
+  const medicines = useMedicines(patientId)
+  const { save, remove } = useMedicineMutation<MedicineDraft>(patientId)
+
+  const [draft, setDraft] = useState<MedicineDraft | null>(null)
+  const [ocrOpen, setOcrOpen] = useState(false)
+  const [confirmRemove, setConfirmRemove] = useState<Medication | null>(null)
+  const [savingOcr, setSavingOcr] = useState(false)
+
+  const rows = medicines.data ?? []
+
+  // Saved one at a time rather than in a batch: `useContentMutation` is the only
+  // sanctioned write path, and one failing row should not take the others with it.
+  const saveOcrRows = async (drafts: MedicineDraft[]) => {
+    setSavingOcr(true)
+    try {
+      for (const medicine of drafts) {
+        await save.mutateAsync(medicine)
+      }
+      setOcrOpen(false)
+    } finally {
+      setSavingOcr(false)
+    }
+  }
+
+  const grouped = rows.reduce<Record<string, Medication[]>>((acc, row) => {
+    const key = partOfDay(row.chosen_time_min)
+    ;(acc[key] ??= []).push(row)
+    return acc
+  }, {})
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Manage"
+        title="Medicines"
+        description="A gentle chime at her hour, in her language. If she does not respond, Smriti waits, chimes again, and only then calls you — one call covering everything due, never one per pill."
+        actions={
+          canEdit &&
+          !draft &&
+          !ocrOpen && (
+            <>
+              <Button variant="outline" onClick={() => setOcrOpen(true)}>
+                <Camera className="size-4" />
+                Read a prescription
+              </Button>
+              <Button variant="accent" onClick={() => setDraft(emptyMedicine())}>
+                <Plus className="size-4" />
+                Add a medicine
+              </Button>
+            </>
+          )
+        }
+      />
+
+      {!canEdit && (
+        <Notice className="mb-6">
+          You have view-only access to this profile, so medicines cannot be changed here.
+        </Notice>
+      )}
+
+      {medicines.error && <ErrorState error={medicines.error} className="mb-6" />}
+
+      {ocrOpen && canEdit && (
+        <div className="mb-6">
+          <OcrReview
+            patientId={patientId}
+            saving={savingOcr}
+            onSave={(drafts) => void saveOcrRows(drafts)}
+            onClose={() => setOcrOpen(false)}
+          />
+        </div>
+      )}
+
+      {draft && (
+        <Card padding="lg" className="mb-6">
+          <h2 className="mb-5 text-[19px]">
+            {draft.id ? `Edit ${draft.name || 'this medicine'}` : 'Add a medicine'}
+          </h2>
+          <MedicineForm
+            patientId={patientId}
+            value={draft}
+            onChange={setDraft}
+            saving={save.isPending}
+            submitLabel={draft.id ? 'Save changes' : 'Add this medicine'}
+            onCancel={() => setDraft(null)}
+            onSubmit={() => save.mutate(draft, { onSuccess: () => setDraft(null) })}
+          />
+          {save.error && <ErrorState error={save.error} className="mt-4" />}
+        </Card>
+      )}
+
+      {medicines.isPending && (
+        <div className="space-y-3">
+          {[0, 1].map((i) => (
+            <SkeletonRow key={i} />
+          ))}
+        </div>
+      )}
+
+      {!medicines.isPending && rows.length === 0 && !draft && !ocrOpen && (
+        <EmptyState
+          icon={<Pill className="size-5" />}
+          title="No medicines yet"
+          description="Add the ones that matter most first. You can photograph the prescription and check the lines, or type them in one at a time."
+          action={
+            canEdit && (
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button onClick={() => setDraft(emptyMedicine())}>
+                  <Plus className="size-4" />
+                  Add by hand
+                </Button>
+                <Button variant="outline" onClick={() => setOcrOpen(true)}>
+                  <Camera className="size-4" />
+                  Read a prescription
+                </Button>
+              </div>
+            )
+          }
+        />
+      )}
+
+      {(['Morning', 'Afternoon', 'Evening', 'Night'] as const).map((slot) =>
+        grouped[slot]?.length ? (
+          <section key={slot} className="mb-6">
+            <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">
+              {slot}
+            </h2>
+            <div className="space-y-3">
+              {grouped[slot]
+                .sort((a, b) => a.chosen_time_min - b.chosen_time_min)
+                .map((med) => (
+                  <Card key={med.id} padding="md" className="flex items-start gap-4">
+                    <span className="grid size-11 flex-none place-items-center rounded-full bg-terracotta/12 text-terracotta">
+                      <Pill className="size-5" />
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-heading text-[17px] font-bold">{med.name}</p>
+                      <p className="truncate text-[13.5px] text-body">{med.dose}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Badge tone="warm" size="sm">
+                          <Clock className="size-3" />
+                          {formatMinutes(med.chosen_time_min)}
+                        </Badge>
+                        <Badge tone="neutral" size="sm">
+                          {describeDays(med.days_of_week)}
+                        </Badge>
+                        <Badge tone="outline" size="sm">
+                          Any time {formatMinutes(med.window_start_min)}–
+                          {formatMinutes(med.window_end_min)}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {canEdit && (
+                      <div className="flex flex-none gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Edit ${med.name}`}
+                          onClick={() => setDraft(toDraft(med))}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Stop ${med.name}`}
+                          onClick={() => setConfirmRemove(med)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+            </div>
+          </section>
+        ) : null,
+      )}
+
+      <Dialog
+        open={Boolean(confirmRemove)}
+        onOpenChange={(open) => !open && setConfirmRemove(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Stop reminding about {confirmRemove?.name}?</DialogTitle>
+            <DialogDescription>
+              The chime stops and no more calls will be placed about this one. The record of
+              doses already taken stays intact, so your reports do not change retrospectively.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmRemove(null)}>
+              Keep it
+            </Button>
+            <Button
+              variant="danger"
+              disabled={remove.isPending}
+              onClick={() => {
+                if (!confirmRemove) return
+                remove.mutate(confirmRemove.id, { onSuccess: () => setConfirmRemove(null) })
+              }}
+            >
+              {remove.isPending ? 'Stopping…' : 'Stop reminders'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}

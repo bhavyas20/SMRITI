@@ -1,111 +1,168 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import 'tailwindcss';
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+/* ─────────────────────────────────────────────────────────────────────────
+   Brand tokens.
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+   Mirrored from `src/styles/tokens.ts` — keep the two in step. Declaring them
+   inside `@theme` is what makes `bg-terracotta`, `text-ink`, `font-heading`
+   and friends exist as real utility classes, so components never carry hex.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-terracotta: #bc5a3c;
+  --color-terracotta-deep: #ae4f34;
+  --color-terracotta-bright: #c76547;
+  --color-cream: #f5ead8;
+  --color-ivory: #f9f4ed;
+  --color-sand: #ebddc5;
+  --color-ink: #201e1d;
+  --color-body: #474238;
+  --color-muted: #645c50;
+  --color-gold: #e8a83f;
+  --color-coral: #ef8b7c;
+  --color-sage: #56633f;
+  --color-sage-soft: #f0fae1;
+  --color-sage-bright: #8fa073;
+  --color-clay: #fff2eb;
+  --color-bark: #8c491a;
+  --color-bark-deep: #643312;
+  --color-alert: #b3402f;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+  --font-heading: 'Baloo 2', 'Figtree', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Figtree', system-ui, -apple-system, sans-serif;
+
+  --radius-card: 26px;
+  --radius-panel: 32px;
+  --radius-pill: 999px;
+
+  --shadow-lift: 0 10px 26px rgba(74, 36, 19, 0.18);
+  --shadow-panel: 0 24px 60px rgba(46, 43, 37, 0.14);
+  --shadow-nav: 0 1px 2px rgba(46, 43, 37, 0.14);
+
+  --ease-settle: cubic-bezier(0.22, 0.8, 0.18, 1);
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-twinkle: twinkle 5.5s ease-in-out infinite;
+  --animate-bob: bob 2.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -180% 0;
+  }
+  100% {
+    background-position: 180% 0;
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.06);
+  }
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
   }
 }
 
-@media (prefers-color-scheme: dark) {
+/* The one gradient in the system, as a reusable utility. */
+@utility bg-accent-gradient {
+  background-image: linear-gradient(102deg, #e8a83f 0%, #ef9068 58%, #ef8b7c 100%);
+}
+
+/* Skeletons — a warm shimmer on sand, never a spinner. See §"loading". */
+@utility skeleton {
+  background-color: var(--color-sand);
+  background-image: linear-gradient(
+    100deg,
+    rgba(249, 244, 237, 0) 20%,
+    rgba(249, 244, 237, 0.75) 50%,
+    rgba(249, 244, 237, 0) 80%
+  );
+  background-size: 220% 100%;
+  animation: var(--animate-shimmer);
+  border-radius: 12px;
+}
+
+@layer base {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    color-scheme: light;
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Numerals are a heading job in this system — they carry the same weight as
+     a headline in a dashboard, and Figtree's figures are too quiet for it. */
+  .numeral {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-terracotta);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-ink);
+  }
+
+  /* Horizontal scrollers (feature slider, day strips) hide their bar but stay
+     scrollable and keyboard-reachable. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+/* Reduced motion is honoured per-component through Framer Motion's
+   `useReducedMotion`, which lets each animation choose a sensible settled
+   state rather than freezing mid-transition. This block is the backstop for
+   anything driven by CSS. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }
