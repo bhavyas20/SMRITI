@@ -34,7 +34,7 @@ export function ChartFrame({
   const [showTable, setShowTable] = useState(false)
 
   return (
-    <Card padding="md" className={className}>
+    <Card padding="md" className={cn('overflow-hidden bg-gradient-to-br from-white/65 via-ivory to-sage-soft/20', className)}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-heading text-[17px] font-bold">{title}</h3>
@@ -51,7 +51,7 @@ export function ChartFrame({
             aria-pressed={showTable}
             className={cn(
               'inline-flex flex-none items-center gap-1.5 rounded-pill px-3 py-1.5 text-[12.5px] font-semibold transition-colors',
-              showTable ? 'bg-ink text-ivory' : 'bg-sand text-body hover:bg-sand/70',
+              showTable ? 'bg-terracotta text-ivory' : 'bg-sand text-body hover:bg-terracotta/10 hover:text-terracotta',
             )}
           >
             <Table2 className="size-3.5" />

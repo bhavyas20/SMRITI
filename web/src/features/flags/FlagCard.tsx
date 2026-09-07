@@ -35,7 +35,19 @@ export function FlagCard({ flag, patientId }: { flag: Flag; patientId: string })
     <Card
       tone={flag.severity === 'high' ? 'alert' : flag.severity === 'moderate' ? 'warm' : 'sand'}
       padding="md"
+      className="relative overflow-hidden"
     >
+      <span
+        className={cn(
+          'absolute inset-y-0 left-0 w-1',
+          flag.severity === 'high'
+            ? 'bg-alert'
+            : flag.severity === 'moderate'
+              ? 'bg-terracotta'
+              : 'bg-gold',
+        )}
+        aria-hidden="true"
+      />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

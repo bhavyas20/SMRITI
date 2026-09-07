@@ -29,11 +29,15 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center rounded-card border border-dashed border-ink/12 bg-sand/40 px-6 py-12 text-center',
+        'relative flex flex-col items-center overflow-hidden rounded-card border border-dashed border-ink/12 bg-gradient-to-b from-sand/45 to-ivory px-6 py-12 text-center',
         className,
       )}
     >
-      <div className="grid size-14 place-items-center rounded-full bg-ivory text-terracotta/70">
+      <svg className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 w-full opacity-20" viewBox="0 0 500 70" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 62 72 26l43 24 72-34 69 30 74-38 170 44v18H0Z" fill="var(--color-sage)" />
+        <path d="M0 62 72 26l43 24 72-34 69 30 74-38 170 44" fill="none" stroke="var(--color-terracotta)" strokeWidth="2" />
+      </svg>
+      <div className="relative grid size-14 place-items-center rounded-full bg-ivory text-terracotta shadow-sm">
         {icon ?? <Logomark size={24} decorative />}
       </div>
       <p className="mt-4 font-heading text-lg font-bold">{title}</p>
@@ -113,8 +117,10 @@ export function Notice({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-2xl px-4 py-3 text-sm leading-relaxed',
-        tone === 'info' ? 'bg-sand/60 text-body' : 'bg-gold/12 text-[#6F4E0C]',
+        'flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm leading-relaxed shadow-[0_5px_16px_rgba(54,39,24,0.035)]',
+        tone === 'info'
+          ? 'border-ink/[0.06] bg-sand/55 text-body'
+          : 'border-gold/20 bg-gold/10 text-[#6F4E0C]',
         className,
       )}
     >

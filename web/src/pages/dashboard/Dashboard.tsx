@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
+  ArrowUpRight,
   Check,
   ChevronRight,
   Clock,
   MessageSquareHeart,
   Pill,
+  Sparkles,
   WifiOff,
 } from 'lucide-react'
 
@@ -92,6 +94,11 @@ export default function Dashboard() {
 
   const scheduled = todayRow?.scheduled ?? todaysMedicines.length
   const confirmed = todayRow?.confirmed ?? 0
+  const pulse = activeFlags.length > 0
+    ? `${activeFlags.length} gentle nudge${activeFlags.length === 1 ? '' : 's'} waiting for you.`
+    : todayRow?.played
+      ? 'A steady day is taking shape.'
+      : 'The day is still open for a first check-in.'
 
   return (
     <>
@@ -100,6 +107,39 @@ export default function Dashboard() {
         title={patient ? `${patient.display_name.split(' ')[0]}’s day` : 'Today'}
         description="What has happened so far, and what is still to come. Everything here comes from the tablet — nothing is inferred."
       />
+
+      <section className="relative mb-7 overflow-hidden rounded-[28px] border border-terracotta/15 bg-gradient-to-br from-clay via-ivory to-sage-soft/70 px-6 py-6 shadow-[0_16px_38px_rgba(174,83,48,0.08)] sm:px-8 sm:py-7">
+        <div className="pointer-events-none absolute -right-10 -top-20 size-64 rounded-full border border-terracotta/10" />
+        <div className="pointer-events-none absolute -bottom-20 right-20 size-56 rounded-full bg-gold/15 blur-3xl" />
+        <svg className="pointer-events-none absolute bottom-0 right-0 opacity-20" width="390" height="130" viewBox="0 0 390 130" fill="none" aria-hidden="true">
+          <path d="M0 112 58 55l35 35 50-58 51 50 44-38 119 66" stroke="var(--color-sage)" strokeWidth="2" />
+          <path d="M0 126h390" stroke="var(--color-terracotta)" strokeWidth="2" />
+        </svg>
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-[620px]">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-terracotta">
+              <Sparkles className="size-3.5" /> North-East care pulse
+            </div>
+            <h2 className="mt-2 text-[clamp(24px,3vw,34px)] leading-tight text-ink">A little closer to home.</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-body">{pulse} Smriti keeps the useful part of the day within reach, without turning care into a control room.</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Button asChild variant="accent">
+                <Link to={`/p/${patientId}/engagement`}>See the rhythm <ArrowUpRight className="size-4" /></Link>
+              </Button>
+              <Button asChild variant="outline" className="bg-white/45">
+                <Link to={`/p/${patientId}/care-guide`}>Care guide <ArrowRight className="size-4" /></Link>
+              </Button>
+            </div>
+          </div>
+          <div className="relative grid size-32 shrink-0 place-items-center self-start rounded-full border border-terracotta/15 bg-white/55 lg:self-auto">
+            <div className="absolute inset-3 rotate-45 rounded-full border border-gold/70 border-t-transparent" />
+            <div className="text-center">
+              <p className="numeral text-3xl text-ink">{scheduled > 0 ? Math.round((confirmed / scheduled) * 100) : '—'}%</p>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-muted">today held</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {health !== 'ok' && (
         <Notice tone="warn" className="mb-6">

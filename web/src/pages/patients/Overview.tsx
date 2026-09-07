@@ -168,12 +168,12 @@ export default function Overview() {
 
   return (
     <div className="relative isolate min-h-dvh overflow-hidden bg-ivory">
-      <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 -translate-x-1/2 -translate-y-1/2 opacity-[0.035]" aria-hidden="true">
+      <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 -translate-x-1/2 -translate-y-1/2 opacity-[0.10] blur-[7px]" aria-hidden="true">
         <Logomark
           size={900}
-          className="size-[min(108vw,1100px)]"
-          color="var(--color-ink)"
-          strokeWidth={5.5}
+          className="size-[min(82vw,900px)]"
+          color="var(--color-terracotta)"
+          strokeWidth={6}
           decorative
         />
       </div>
