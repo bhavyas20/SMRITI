@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 import { Eyebrow } from '@/components/ui/card.tsx'
 import { cn } from '@/lib/utils.ts'
@@ -74,6 +75,12 @@ function SlideArt({ art, accent }: { art: Slide['art']; accent: Slide['accent'] 
         a.ground,
       )}
     >
+      <motion.div
+        aria-hidden="true"
+        className={cn('absolute -right-10 -top-10 size-36 rounded-full opacity-35 blur-2xl', a.mark)}
+        animate={{ scale: [0.9, 1.12, 0.9], x: [0, -12, 0], y: [0, 10, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
       <svg viewBox="0 0 400 500" className="absolute inset-0 size-full" aria-hidden="true">
         {art === 'morning' && (
           <g fill="none" stroke="currentColor" className="text-ink/25" strokeWidth="3">

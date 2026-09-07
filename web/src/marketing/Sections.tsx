@@ -11,6 +11,84 @@ import { Eyebrow } from '@/components/ui/card.tsx'
 import { cn } from '@/lib/utils.ts'
 import { Reveal } from './Reveal.tsx'
 
+function AmbientMotion({
+  tone = 'bg-gold/20',
+  showWeave = false,
+  showMountains = false,
+}: {
+  tone?: string
+  showWeave?: boolean
+  showMountains?: boolean
+}) {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <motion.div
+        className={cn('absolute -right-20 top-12 size-72 rounded-full opacity-80 blur-3xl', tone)}
+        animate={{ x: [0, -42, 0], y: [0, 32, 0], scale: [0.86, 1.12, 0.86] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute -bottom-24 left-[12%] size-60 rounded-full bg-coral/20 blur-3xl"
+        animate={{ x: [0, 48, 0], y: [0, -30, 0], scale: [1, 0.88, 1] }}
+        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+      {showWeave && (
+        <motion.svg
+          viewBox="0 0 1200 180"
+          preserveAspectRatio="none"
+          className="absolute bottom-[5%] left-0 z-0 h-[170px] w-screen text-terracotta/45"
+          animate={{ x: [0, -12, 0], y: [0, 5, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <defs>
+            <pattern id="ner-handloom-repeat" width="80" height="48" patternUnits="userSpaceOnUse">
+              <path d="M0 9 H80 M0 39 H80" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
+              <path d="M0 24 L20 9 L40 24 L60 9 L80 24 M0 24 L20 39 L40 24 L60 39 L80 24" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.95" strokeLinejoin="round" />
+            </pattern>
+          </defs>
+          <rect width="1200" height="180" fill="url(#ner-handloom-repeat)" opacity="0.82" />
+        </motion.svg>
+      )}
+      {showWeave && (
+        <motion.svg
+          viewBox="0 0 520 180"
+          className="hidden"
+          animate={{ x: [0, 12, 0], y: [0, 5, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        >
+          <path d="M0 34 H520 M0 78 H520 M0 122 H520" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.8" />
+          <path d="M0 12 L28 34 L0 56 L28 78 L0 100 L28 122 L0 144 M104 12 L132 34 L104 56 L132 78 L104 100 L132 122 L104 144 M208 12 L236 34 L208 56 L236 78 L208 100 L236 122 L208 144 M312 12 L340 34 L312 56 L340 78 L312 100 L340 122 L312 144 M416 12 L444 34 L416 56 L444 78 L416 100 L444 122 L416 144 M520 12 L548 34 L520 56 L548 78 L520 100 L548 122 L520 144" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.9" />
+        </motion.svg>
+      )}
+      {showMountains && (
+        <motion.svg
+          viewBox="0 0 620 260"
+          className="absolute bottom-[4%] left-0 z-0 w-full text-sage/20"
+          animate={{ x: [0, -14, 0], y: [0, 5, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <path d="M0 238 L96 112 L154 176 L260 42 L374 190 L470 90 L620 238 Z" fill="currentColor" opacity="0.55" />
+          <path d="M0 250 L124 154 L192 208 L292 102 L408 214 L506 142 L620 226 V260 H0Z" fill="currentColor" opacity="0.28" />
+          <path d="M0 230 C120 214 184 230 286 210 C404 186 496 208 620 184" fill="none" stroke="currentColor" strokeWidth="3" opacity="0.7" />
+          <path d="M0 202 C86 188 142 198 214 190 C302 180 368 194 438 178 C510 162 566 172 620 160" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.38" />
+          <path d="M0 218 C82 206 148 216 224 206 C312 194 374 210 446 194 C520 180 574 190 620 180" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.28" />
+          <path d="M0 244 C94 234 166 246 252 234 C344 220 414 238 494 220 C548 208 588 218 620 210" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.24" />
+        </motion.svg>
+      )}
+      <motion.span
+        className="absolute left-[18%] top-[26%] size-3 rounded-full bg-gold shadow-[0_0_18px_rgba(232,168,63,0.7)]"
+        animate={{ y: [0, -22, 0], opacity: [0.35, 1, 0.35] }}
+        transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.span
+        className="absolute bottom-[24%] right-[28%] size-2.5 rounded-full bg-coral shadow-[0_0_16px_rgba(239,139,124,0.8)]"
+        animate={{ y: [0, 18, 0], x: [0, 12, 0], opacity: [0.25, 1, 0.25] }}
+        transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+      />
+    </div>
+  )
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    How it works — cream.
    Each step carries a different accent chip, so "three steps" reads as three
@@ -20,7 +98,7 @@ import { Reveal } from './Reveal.tsx'
 const STEPS = [
   {
     n: 1,
-    title: 'She answers a gentle check-in',
+    title: 'They answer a gentle check-in',
     body: 'One card, one tap. “Did you sleep well?” — never a form, never an alarm.',
     chip: 'bg-clay text-bark',
     card: 'bg-sand',
@@ -35,7 +113,7 @@ const STEPS = [
   {
     n: 3,
     title: 'You get the short version',
-    body: 'A calm daily line, a weekly report the whole family can see, and one memory she chose to share.',
+    body: 'A calm daily line, a weekly report the whole family can see, and one memory they chose to share.',
     chip: 'bg-gold/25 text-[#8A6210]',
     card: 'bg-gold/[0.09]',
   },
@@ -43,7 +121,8 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="how" className="bg-cream px-5 py-[clamp(64px,9vw,132px)] sm:px-12">
+    <section id="how" className="relative isolate overflow-hidden bg-cream px-5 py-[clamp(64px,9vw,132px)] sm:px-12">
+      <AmbientMotion tone="bg-gold/15" showMountains />
       <div className="mx-auto grid max-w-[1180px] items-start gap-[clamp(32px,5vw,72px)] md:grid-cols-2">
         <Reveal>
           <Eyebrow className="mb-3.5">How it works</Eyebrow>
@@ -57,7 +136,7 @@ export function HowItWorks() {
           </p>
         </Reveal>
 
-        <div className="flex flex-col gap-3.5">
+        <div className="relative z-10 flex flex-col gap-3.5">
           {STEPS.map((step, i) => (
             <Reveal key={step.n} delay={0.08 * i} y={16}>
               <div className={cn('flex items-start gap-4 rounded-card px-6 py-5.5', step.card)}>
@@ -145,7 +224,8 @@ function CountUp({ stat }: { stat: (typeof STATS)[number] }) {
 
 export function StatBand() {
   return (
-    <section className="bg-sage px-5 py-[clamp(48px,6vw,80px)] sm:px-12">
+    <section className="relative isolate overflow-hidden bg-sage px-5 py-[clamp(48px,6vw,80px)] sm:px-12">
+      <AmbientMotion tone="bg-sage-bright/20" />
       <div className="mx-auto grid max-w-[1180px] gap-[clamp(24px,4vw,40px)] sm:grid-cols-2 lg:grid-cols-4">
         {STATS.map((stat, i) => (
           <Reveal key={stat.label} delay={i * 0.08} y={14}>
@@ -240,12 +320,13 @@ function PhonePreview() {
 
 export function ProductPreview() {
   return (
-    <section className="overflow-hidden bg-sand px-5 py-[clamp(64px,9vw,130px)] sm:px-12">
-      <div className="mx-auto grid max-w-[1180px] items-center gap-[clamp(40px,6vw,80px)] md:grid-cols-2">
+    <section className="relative isolate overflow-hidden bg-sand px-5 py-[clamp(64px,9vw,130px)] sm:px-12">
+      <AmbientMotion tone="bg-terracotta/10" showWeave />
+      <div className="relative z-10 mx-auto grid max-w-[1180px] items-center gap-[clamp(40px,6vw,80px)] md:grid-cols-2">
         <Reveal>
           <Eyebrow className="mb-3 text-sage">Your side of it</Eyebrow>
           <h2 className="max-w-[20ch] text-[clamp(28px,3.8vw,46px)] leading-[1.08]">
-            Her whole day, in one calm view.
+            Their whole day, in one calm view.
           </h2>
           <p className="mb-6 mt-4.5 max-w-[42ch] text-[16.5px] leading-relaxed text-body">
             Open Smriti at lunch and you know where the day stands. No dashboards, no charts
@@ -305,7 +386,8 @@ const STORIES = [
 
 export function Stories() {
   return (
-    <section id="stories" className="bg-ivory px-5 py-[clamp(64px,9vw,130px)] sm:px-12">
+    <section id="stories" className="relative isolate overflow-hidden bg-ivory px-5 py-[clamp(64px,9vw,130px)] sm:px-12">
+      <AmbientMotion tone="bg-coral/10" />
       <div className="mx-auto max-w-[1180px]">
         <Reveal>
           <Eyebrow className="mb-3">Stories</Eyebrow>
@@ -361,8 +443,9 @@ export function FinalCta() {
   return (
     <section
       id="start"
-      className="relative overflow-hidden bg-terracotta px-5 py-[clamp(72px,10vw,140px)] sm:px-12"
+      className="relative isolate overflow-hidden bg-terracotta px-5 py-[clamp(72px,10vw,140px)] sm:px-12"
     >
+      <AmbientMotion tone="bg-gold/15" />
       <motion.div
         className="pointer-events-none absolute -right-[6vw] -top-[4vw] w-[min(46vw,420px)] opacity-[0.09]"
         animate={reduceMotion ? undefined : { rotate: 360 }}

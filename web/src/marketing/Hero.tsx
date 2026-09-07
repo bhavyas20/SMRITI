@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -7,18 +7,11 @@ import { LogoReveal } from '@/components/brand/LogoReveal.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { gradient } from '@/styles/tokens.ts'
 
-function Sparkle({ style, size }: { style: React.CSSProperties; size: string }) {
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      aria-hidden="true"
-      className="pointer-events-none absolute fill-cream animate-twinkle"
-      style={{ width: size, ...style }}
-    >
-      <path d="M50 0 C52 40 60 48 100 50 C60 52 52 60 50 100 C48 60 40 52 0 50 C40 48 48 40 50 0 Z" />
-    </svg>
-  )
-}
+const HERO_VIDEOS = ['/fansipan.mp4', '/sss.mp4', '/44.mp4']
+const FIRST_VIDEO_PLAYBACK_RATE = 1.1
+const LATER_VIDEO_PLAYBACK_RATE = 0.82
+const FIRST_VIDEO_DURATION_SECONDS = 6
+const LAST_VIDEO_TAIL_CUTOFF_SECONDS = 2
 
 /**
  * The hero.
@@ -34,6 +27,39 @@ function Sparkle({ style, size }: { style: React.CSSProperties; size: string }) 
 export function Hero() {
   const reduceMotion = useReducedMotion()
   const [showVideo, setShowVideo] = useState(false)
+  const [videoIndex, setVideoIndex] = useState(0)
+  const [activeLayer, setActiveLayer] = useState<0 | 1>(0)
+  const [videoSources, setVideoSources] = useState<[string, string]>([HERO_VIDEOS[0], ''])
+  const videoRefs = [useRef<HTMLVideoElement>(null), useRef<HTMLVideoElement>(null)] as const
+
+  const playbackRate = videoIndex === 0 ? FIRST_VIDEO_PLAYBACK_RATE : LATER_VIDEO_PLAYBACK_RATE
+
+  const advanceVideo = () => {
+    const nextIndex = (videoIndex + 1) % HERO_VIDEOS.length
+    const nextLayer: 0 | 1 = activeLayer === 0 ? 1 : 0
+    setVideoSources((sources) => {
+      const nextSources: [string, string] = [...sources]
+      nextSources[nextLayer] = HERO_VIDEOS[nextIndex]
+      return nextSources
+    })
+    setVideoIndex(nextIndex)
+    setActiveLayer(nextLayer)
+  }
+
+  useEffect(() => {
+    if (!showVideo) return
+    const activeVideo = videoRefs[activeLayer].current
+    if (!activeVideo) return
+    activeVideo.playbackRate = playbackRate
+    activeVideo.load()
+    void activeVideo.play().catch(() => undefined)
+
+    const inactiveLayer: 0 | 1 = activeLayer === 0 ? 1 : 0
+    const pauseTimer = window.setTimeout(() => {
+      videoRefs[inactiveLayer].current?.pause()
+    }, 950)
+    return () => window.clearTimeout(pauseTimer)
+  }, [activeLayer, playbackRate, showVideo, videoSources])
 
   const copy = (delay: number) =>
     reduceMotion
@@ -61,25 +87,45 @@ export function Hero() {
           transition={{ duration: 0.35, ease: 'easeOut' }}
           className="pointer-events-none absolute inset-0 z-0"
         >
-          <video
-            className="h-full w-full object-cover"
-            src="/fansipan.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            aria-hidden="true"
-          />
+          {[0, 1].map((layer) => (
+            <motion.video
+              key={layer}
+              ref={videoRefs[layer]}
+              className="absolute inset-0 h-full w-full object-cover"
+              src={videoSources[layer] || undefined}
+              initial={false}
+              animate={{ opacity: layer === activeLayer ? 1 : 0 }}
+              transition={{ duration: 0.9, ease: 'easeInOut' }}
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              onLoadedMetadata={(event) => {
+                event.currentTarget.playbackRate = playbackRate
+              }}
+              onTimeUpdate={(event) => {
+                const video = event.currentTarget
+                if (layer !== activeLayer) return
+                const firstVideoIsDone =
+                  videoIndex === 0 && video.currentTime >= FIRST_VIDEO_DURATION_SECONDS
+                const lastVideoIsDone =
+                  videoIndex === HERO_VIDEOS.length - 1 &&
+                  Number.isFinite(video.duration) &&
+                  video.duration > LAST_VIDEO_TAIL_CUTOFF_SECONDS &&
+                  video.currentTime >= video.duration - LAST_VIDEO_TAIL_CUTOFF_SECONDS
+                if (firstVideoIsDone || lastVideoIsDone) {
+                  advanceVideo()
+                }
+              }}
+              onEnded={() => {
+                if (layer === activeLayer) advanceVideo()
+              }}
+              aria-hidden="true"
+            />
+          ))}
           <div className="absolute inset-0 bg-ink/45" />
         </motion.div>
       )}
-
-      <Sparkle style={{ right: '7vw', bottom: '12vh', opacity: 0.18 }} size="clamp(22px,3vw,40px)" />
-      <Sparkle
-        style={{ left: '9vw', top: '22vh', opacity: 0.14, animationDelay: '1.4s' }}
-        size="clamp(12px,1.6vw,20px)"
-      />
 
       <div className="relative z-10 flex w-full max-w-[880px] flex-col items-center">
         <LogoReveal
@@ -93,7 +139,7 @@ export function Hero() {
           {...copy(0)}
           className="mt-8 max-w-[19ch] text-center text-[clamp(32px,5.4vw,62px)] leading-[1.06] text-ivory"
         >
-          Be close to her day, from wherever you are.
+          Be close to their day, from wherever you are.
         </motion.h1>
 
         <motion.p
