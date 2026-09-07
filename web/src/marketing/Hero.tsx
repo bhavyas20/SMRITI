@@ -3,12 +3,9 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowDown } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { LOGO_REVEAL_DURATION, LogoReveal } from '@/components/brand/LogoReveal.tsx'
+import { LogoReveal } from '@/components/brand/LogoReveal.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { gradient } from '@/styles/tokens.ts'
-
-/** Copy arrives after the mark has finished drawing itself, never over it. */
-const COPY_BASE_DELAY = LOGO_REVEAL_DURATION - 0.3
 
 function Sparkle({ style, size }: { style: React.CSSProperties; size: string }) {
   return (
@@ -36,7 +33,7 @@ function Sparkle({ style, size }: { style: React.CSSProperties; size: string }) 
  */
 export function Hero() {
   const reduceMotion = useReducedMotion()
-  const [, setRevealed] = useState(false)
+  const [showVideo, setShowVideo] = useState(false)
 
   const copy = (delay: number) =>
     reduceMotion
@@ -46,7 +43,7 @@ export function Hero() {
           animate: { opacity: 1, y: 0 },
           transition: {
             duration: 0.85,
-            delay: COPY_BASE_DELAY + delay,
+            delay,
             ease: [0.2, 0.8, 0.2, 1] as const,
           },
         }
@@ -57,18 +54,39 @@ export function Hero() {
       className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-5 pb-20 pt-28 sm:px-12"
       style={{ background: gradient.hero }}
     >
+      {showVideo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="pointer-events-none absolute inset-0 z-0"
+        >
+          <video
+            className="h-full w-full object-cover"
+            src="/fansipan.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-ink/45" />
+        </motion.div>
+      )}
+
       <Sparkle style={{ right: '7vw', bottom: '12vh', opacity: 0.18 }} size="clamp(22px,3vw,40px)" />
       <Sparkle
         style={{ left: '9vw', top: '22vh', opacity: 0.14, animationDelay: '1.4s' }}
         size="clamp(12px,1.6vw,20px)"
       />
 
-      <div className="flex w-full max-w-[880px] flex-col items-center">
+      <div className="relative z-10 flex w-full max-w-[880px] flex-col items-center">
         <LogoReveal
           size={112}
           wordmarkSize={undefined}
           speed={1}
-          onComplete={() => setRevealed(true)}
+          onComplete={() => setShowVideo(true)}
         />
 
         <motion.h1
